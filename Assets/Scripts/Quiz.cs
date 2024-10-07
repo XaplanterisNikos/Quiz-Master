@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class Quiz : MonoBehaviour
 {
@@ -24,9 +25,14 @@ public class Quiz : MonoBehaviour
     [SerializeField] Image timerImage;
     Timer timer;
 
+    [Header("Scoring")]
+    [SerializeField] TextMeshProUGUI scoreText;
+    ScoreKeeper scoreKeeper;
+
     void Start()
     {
         timer = FindObjectOfType<Timer>();
+        scoreKeeper = FindObjectOfType<ScoreKeeper>();
 
     }
 
@@ -37,8 +43,9 @@ public class Quiz : MonoBehaviour
         if (timer.loadNextQuestion)
         {
             hasAnsweredEarly = false;
-            timer.loadNextQuestion = false;
             GetNextQuestion();
+            timer.loadNextQuestion = false;
+
         }
         else if (!hasAnsweredEarly && !timer.isAnsweringQuestion)
         {
@@ -56,6 +63,7 @@ public class Quiz : MonoBehaviour
         DisplayAnswer(index);
         SetButtonState(false);
         timer.CancelTimer();
+        scoreText.text = "Score: " + scoreKeeper.CalculateScore() + "%";
     }
 
     private void DisplayAnswer(int index)
@@ -66,6 +74,7 @@ public class Quiz : MonoBehaviour
             questionText.text = "Correct!";
             buttonImage = answerButtons[index].GetComponent<Image>();
             buttonImage.sprite = correctAnswerSprite;
+            scoreKeeper.IncrementCorrectAnswers();
         }
         else
         {
@@ -85,6 +94,7 @@ public class Quiz : MonoBehaviour
             SetDefaultButtonSprites();
             GetRandomQuestion();
             DisplayQuestion();
+            scoreKeeper.IncrementQuestionsSeen();
         }
 
     }
@@ -92,6 +102,7 @@ public class Quiz : MonoBehaviour
     void GetRandomQuestion()
     {
         int index = Random.Range(0, questions.Count);
+
         currentQuestion = questions[index];
 
         if (questions.Contains(currentQuestion))
